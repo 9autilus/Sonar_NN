@@ -98,6 +98,7 @@ if __name__ == '__main__':
     exp_00 = 0
     exp_01 = 0
     exp_02 = 0
+    exp_03 = 1
 
     # Accuracy vs epochs vs #layers
     if exp_00:
@@ -320,3 +321,25 @@ if __name__ == '__main__':
                     legend.append('Opt: ' + str(optimizers[i]))
                 plt.legend(legend, loc='best')
                 plt.show()
+
+
+    # Get confusion matrix
+    if exp_03:
+        exp_file_name = 'exp_03.npy'
+        num_layers = 3
+        num_units = 64
+        n_epochs = 200
+
+        if 0:  # generate data
+            other_args = {} # default optimizer is rmsprop
+            history, conf_matrix = train_and_test(X, y, skf, n_epochs, n_folds, num_layers, num_units, other_args)
+            all_history = []
+            all_conf_matrix = []
+            all_history.append(history)
+            all_conf_matrix.append(conf_matrix)
+            exp_data = {'history': all_history, 'conf_matrix': all_conf_matrix}
+            np.save(exp_file_name, exp_data)
+        else: # Read data
+            exp_data = np.load(exp_file_name).item()
+            print('Confusion Matrix: \n', exp_data['conf_matrix'][0])
+

@@ -34,7 +34,7 @@ def train_model(m, model_name, X_train, y_train, X_test, y_test, n_epochs, other
 
     h = m.fit(X_train, y_train, batch_size=32, nb_epoch=n_epochs,
               validation_data=(X_test, y_test), callbacks=[checkpointer],
-               verbose=0)
+               verbose=2)
     return h
 
 
