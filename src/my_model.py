@@ -20,10 +20,12 @@ def create_model(input_shape, num_layers, num_units):
     return m
 
 
-def train_model(m, model_name, X_train, y_train, X_test, y_test, n_epochs):
+def train_model(m, model_name, X_train, y_train, X_test, y_test, n_epochs, other_args):
     # Optimizers
-    opt = optimizers.RMSprop()
-    # opt = optimizers.SGD(lr=0.01, momentum=0.0, decay=0.0, nesterov=False)
+    if 'opt' in other_args:
+        opt = other_args['opt']
+    else:
+        opt = optimizers.RMSprop()
 
     m.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
     # Create check point callback

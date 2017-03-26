@@ -39,7 +39,7 @@ def smooth(x, window_len=11, window='hanning'):
     y = np.convolve(w / w.sum(), s, mode='valid')
     return y
 
-def train_and_test(X, y, skf, n_epochs, n_folds, num_layers, num_units):
+def train_and_test(X, y, skf, n_epochs, n_folds, num_layers, num_units, other_args):
     input_shape = (X.shape[1],)
     loss = np.empty([n_folds, n_epochs])
     acc = np.empty([n_folds, n_epochs])
@@ -57,7 +57,7 @@ def train_and_test(X, y, skf, n_epochs, n_folds, num_layers, num_units):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
 
-        history_fold = train_model(model, model_name, X_train, y_train, X_test, y_test, n_epochs)
+        history_fold = train_model(model, model_name, X_train, y_train, X_test, y_test, n_epochs, other_args)
 
         loss[i] = history_fold.history['loss']
         acc[i] = history_fold.history['acc']
@@ -97,11 +97,14 @@ if __name__ == '__main__':
 
     exp_00 = 0
     exp_01 = 0
+    exp_02 = 0
 
     # Accuracy vs epochs vs #layers
     if exp_00:
+        exp_file_name = 'exp_00.npy'
         layers = [1,3, 5,7, 10]
         units = 128
+        other_args = {}
 
         if 0: # generate data
             all_history = []
@@ -111,13 +114,13 @@ if __name__ == '__main__':
                 print('#### Num layers: {0:d}'.format(i))
                 num_layers = i
                 num_units = units
-                history, conf_matrix = train_and_test(X, y, skf, n_epochs, n_folds, num_layers, num_units)
+                history, conf_matrix = train_and_test(X, y, skf, n_epochs, n_folds, num_layers, num_units, other_args)
                 all_history.append(history)
                 all_conf_matrix.append(conf_matrix)
-            exp_00_data = {'history': all_history, 'conf_matrix': all_conf_matrix}
-            np.save('exp_00.npy', exp_00_data)
+            exp_data = {'history': all_history, 'conf_matrix': all_conf_matrix}
+            np.save(exp_file_name, exp_data)
         else: # Read data
-            exp_00_data = np.load('exp_00.npy').item()
+            exp_data = np.load(exp_file_name).item()
             lw = 1
 
             if 1: # Training set: Accuracy vs Epochs vs #Layers
@@ -128,7 +131,7 @@ if __name__ == '__main__':
                 plt.xlabel('Epoch')
                 legend = []
                 for i in range(len(layers) - 1):  # -1 to ignore the last weird result
-                    data = exp_00_data['history'][i]['acc']
+                    data = exp_data['history'][i]['acc']
                     data = smooth(data, window_len=11)
                     plt.plot(data, linewidth=lw)
                     legend.append('#Hidden-Layers: ' + str(layers[i]))
@@ -143,7 +146,7 @@ if __name__ == '__main__':
                 plt.xlabel('Epoch')
                 legend = []
                 for i in range(len(layers) - 1):  # -1 to ignore the last weird result
-                    data = exp_00_data['history'][i]['val_acc']
+                    data = exp_data['history'][i]['val_acc']
                     data = smooth(data, window_len=11)
                     plt.plot(data, linewidth=lw)
                     legend.append('#Hidden-Layers: ' + str(layers[i]))
@@ -154,16 +157,16 @@ if __name__ == '__main__':
                 plt.figure()
                 plt.grid()
                 plt.title('Loss vs Epochs vs #Hidden-Layers')  # summarize history for accuracy
-                plt.ylabel('Accuracy')
+                plt.ylabel('Loss')
                 plt.xlabel('Epoch')
                 legend = ['Training Loss', 'Testing Loss']
                 best_layer_id = 1
                 # Training loss
-                data = exp_00_data['history'][best_layer_id]['loss']
+                data = exp_data['history'][best_layer_id]['loss']
                 data = smooth(data, window_len=11)
                 plt.plot(data, linewidth=lw)
                 # Validation loss
-                data = exp_00_data['history'][best_layer_id]['val_loss']
+                data = exp_data['history'][best_layer_id]['val_loss']
                 data = smooth(data, window_len=11)
                 plt.plot(data, linewidth=lw)
                 plt.legend(legend, loc='best')
@@ -178,11 +181,11 @@ if __name__ == '__main__':
                 legend = ['Training Accuracy', 'Testing Accuracy']
                 best_layer_id = 1
                 # Training acc
-                data = exp_00_data['history'][best_layer_id]['acc']
+                data = exp_data['history'][best_layer_id]['acc']
                 data = smooth(data, window_len=11)
                 plt.plot(data, linewidth=lw)
                 # Validation acc
-                data = exp_00_data['history'][best_layer_id]['val_acc']
+                data = exp_data['history'][best_layer_id]['val_acc']
                 data = smooth(data, window_len=11)
                 plt.plot(data, linewidth=lw)
                 plt.legend(legend, loc='best')
@@ -190,8 +193,10 @@ if __name__ == '__main__':
 
     # Accuracy vs epochs vs #Units
     if exp_01:
+        exp_file_name = 'exp_01.npy'
         layers = 3
         units = [8, 16, 32, 64, 128]
+        other_args = {}
 
         if 0: # generate data
             all_history = []
@@ -201,13 +206,13 @@ if __name__ == '__main__':
                 print('#### Num Units: {0:d}'.format(unit))
                 num_layers = layers
                 num_units = unit
-                history, conf_matrix = train_and_test(X, y, skf, n_epochs, n_folds, num_layers, num_units)
+                history, conf_matrix = train_and_test(X, y, skf, n_epochs, n_folds, num_layers, num_units, other_args)
                 all_history.append(history)
                 all_conf_matrix.append(conf_matrix)
-            exp_01_data = {'history': all_history, 'conf_matrix': all_conf_matrix}
-            np.save('exp_01.npy', exp_01_data)
+            exp_data = {'history': all_history, 'conf_matrix': all_conf_matrix}
+            np.save(exp_file_name, exp_data)
         else: # Read data
-            exp_01_data = np.load('exp_01.npy').item()
+            exp_data = np.load(exp_file_name).item()
             lw = 1
 
             if 1:  # Training set: Accuracy vs Epochs vs #Units
@@ -218,7 +223,7 @@ if __name__ == '__main__':
                 plt.xlabel('Epoch')
                 legend = []
                 for i in range(len(units)):
-                    data = exp_01_data['history'][i]['acc']
+                    data = exp_data['history'][i]['acc']
                     data = smooth(data, window_len=11)
                     plt.plot(data, linewidth=lw)
                     legend.append('#Units: ' + str(units[i]))
@@ -233,7 +238,7 @@ if __name__ == '__main__':
                 plt.xlabel('Epoch')
                 legend = []
                 for i in range(len(units)):
-                    data = exp_01_data['history'][i]['val_acc']
+                    data = exp_data['history'][i]['val_acc']
                     data = smooth(data, window_len=11)
                     plt.plot(data, linewidth=lw)
                     legend.append('#Units: ' + str(units[i]))
@@ -244,16 +249,16 @@ if __name__ == '__main__':
                 plt.figure()
                 plt.grid()
                 plt.title('Loss vs Epochs vs #Units')  # summarize history for accuracy
-                plt.ylabel('Accuracy')
+                plt.ylabel('Loss')
                 plt.xlabel('Epoch')
                 legend = ['Training Loss', 'Testing Loss']
                 best_unit_id = 3
                 # Training loss
-                data = exp_01_data['history'][best_unit_id]['loss']
+                data = exp_data['history'][best_unit_id]['loss']
                 data = smooth(data, window_len=11)
                 plt.plot(data, linewidth=lw)
                 # Validation loss
-                data = exp_01_data['history'][best_unit_id]['val_loss']
+                data = exp_data['history'][best_unit_id]['val_loss']
                 data = smooth(data, window_len=11)
                 plt.plot(data, linewidth=lw)
                 plt.legend(legend, loc='best')
@@ -268,12 +273,50 @@ if __name__ == '__main__':
                 legend = ['Training Accuracy', 'Testing Accuracy']
                 best_unit_id = 3
                 # Training acc
-                data = exp_01_data['history'][best_unit_id]['acc']
+                data = exp_data['history'][best_unit_id]['acc']
                 data = smooth(data, window_len=11)
                 plt.plot(data, linewidth=lw)
                 # Validation acc
-                data = exp_01_data['history'][best_unit_id]['val_acc']
+                data = exp_data['history'][best_unit_id]['val_acc']
                 data = smooth(data, window_len=11)
                 plt.plot(data, linewidth=lw)
+                plt.legend(legend, loc='best')
+                plt.show()
+
+    # Training loss vs optimizers
+    if exp_02:
+        exp_file_name = 'exp_02.npy'
+        optimizers = ['sgd', 'rmsprop', 'adagrad', 'adadelta', 'adam']
+        num_layers = 3
+        num_units = 64
+
+        if 0: # generate data
+            all_history = []
+            all_conf_matrix = []
+
+            for i in range(len(optimizers)):
+                print('#### Optimizer: {0:s}'.format(optimizers[i]))
+                other_args = {'opt': optimizers[i]}
+                history, conf_matrix = train_and_test(X, y, skf, n_epochs, n_folds, num_layers, num_units, other_args)
+                all_history.append(history)
+                all_conf_matrix.append(conf_matrix)
+            exp_data = {'history': all_history, 'conf_matrix': all_conf_matrix}
+            np.save(exp_file_name, exp_data)
+        else: # Read data
+            exp_data = np.load(exp_file_name).item()
+            lw = 1
+
+            if 1:  # Training Loss vs Epochs vs Optimizer
+                plt.figure()
+                plt.grid()
+                plt.title('Training Loss vs Epochs vs Optimizer')  # summarize history for accuracy
+                plt.ylabel('Training Loss')
+                plt.xlabel('Epoch')
+                legend = []
+                for i in range(len(optimizers)):
+                    data = exp_data['history'][i]['loss']
+                    data = smooth(data, window_len=11)
+                    plt.plot(data, linewidth=lw)
+                    legend.append('Opt: ' + str(optimizers[i]))
                 plt.legend(legend, loc='best')
                 plt.show()
