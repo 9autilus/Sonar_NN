@@ -4,11 +4,11 @@ from keras import optimizers
 from keras.callbacks import ModelCheckpoint
 from keras.models import load_model
 
-def create_model(input_shape, num_layers, num_units):
+def create_model(input_shape, num_layers, num_units, activation):
     m = Sequential()
 
     # First hidden layer
-    m.add(Dense(num_units, activation='sigmoid', input_shape=input_shape))
+    m.add(Dense(num_units, activation=activation, input_shape=input_shape))
 
     # Other hidden layers
     for i in range(1, num_layers):

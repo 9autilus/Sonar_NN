@@ -46,13 +46,18 @@ def train_and_test(X, y, skf, n_epochs, n_folds, num_layers, num_units, other_ar
     val_acc = np.empty([n_folds, n_epochs])
     val_loss = np.empty([n_folds, n_epochs])
 
+    if 'activation' in other_args:
+        activation = other_args['activation']
+    else:
+        activation = 'sigmoid'
+
     conf_matrices = np.empty([n_folds, 2, 2])
 
     # Loop over all k-folds
     for i, (train_index, test_index) in enumerate(skf.split(X, y)):
         print('Running Fold {0:d}/{1:d}'.format(i, n_folds))
         model = None  # Clearing the NN.
-        model = create_model(input_shape, num_layers, num_units)
+        model = create_model(input_shape, num_layers, num_units, activation)
 
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
@@ -98,7 +103,8 @@ if __name__ == '__main__':
     exp_00 = 0
     exp_01 = 0
     exp_02 = 0
-    exp_03 = 1
+    exp_03 = 0
+    exp_04 = 0
 
     # Accuracy vs epochs vs #layers
     if exp_00:
@@ -136,7 +142,7 @@ if __name__ == '__main__':
                     data = smooth(data, window_len=11)
                     plt.plot(data, linewidth=lw)
                     legend.append('#Hidden-Layers: ' + str(layers[i]))
-                plt.legend(legend, loc='lower right')
+                plt.legend(legend, loc='best')
                 plt.show()
 
             if 1: # Test set: Accuracy vs Epochs vs #Layers
@@ -151,13 +157,13 @@ if __name__ == '__main__':
                     data = smooth(data, window_len=11)
                     plt.plot(data, linewidth=lw)
                     legend.append('#Hidden-Layers: ' + str(layers[i]))
-                plt.legend(legend, loc='lower right')
+                plt.legend(legend, loc='best')
                 plt.show()
 
             if 1: # Loss vs epochs vs phase
                 plt.figure()
                 plt.grid()
-                plt.title('Loss vs Epochs vs #Hidden-Layers')  # summarize history for accuracy
+                plt.title('Loss vs Epochs vs Phase')  # summarize history for accuracy
                 plt.ylabel('Loss')
                 plt.xlabel('Epoch')
                 legend = ['Training Loss', 'Testing Loss']
@@ -176,7 +182,7 @@ if __name__ == '__main__':
             if 1: # Accuracy vs epochs vs phase
                 plt.figure()
                 plt.grid()
-                plt.title('Accuracy vs Epochs vs #Hidden-Layers')  # summarize history for accuracy
+                plt.title('Accuracy vs Epochs vs Phase')  # summarize history for accuracy
                 plt.ylabel('Accuracy')
                 plt.xlabel('Epoch')
                 legend = ['Training Accuracy', 'Testing Accuracy']
@@ -228,7 +234,7 @@ if __name__ == '__main__':
                     data = smooth(data, window_len=11)
                     plt.plot(data, linewidth=lw)
                     legend.append('#Units: ' + str(units[i]))
-                plt.legend(legend, loc='lower right')
+                plt.legend(legend, loc='best')
                 plt.show()
 
             if 1:  # Test set: Accuracy vs Epochs vs #Units
@@ -243,13 +249,13 @@ if __name__ == '__main__':
                     data = smooth(data, window_len=11)
                     plt.plot(data, linewidth=lw)
                     legend.append('#Units: ' + str(units[i]))
-                plt.legend(legend, loc='lower right')
+                plt.legend(legend, loc='best')
                 plt.show()
 
             if 1:  # Loss vs epochs vs phase
                 plt.figure()
                 plt.grid()
-                plt.title('Loss vs Epochs vs #Units')  # summarize history for accuracy
+                plt.title('Loss vs Epochs vs Phase')  # summarize history for accuracy
                 plt.ylabel('Loss')
                 plt.xlabel('Epoch')
                 legend = ['Training Loss', 'Testing Loss']
@@ -268,7 +274,7 @@ if __name__ == '__main__':
             if 1:  # Accuracy vs epochs vs phase
                 plt.figure()
                 plt.grid()
-                plt.title('Accuracy vs Epochs vs #Units')  # summarize history for accuracy
+                plt.title('Accuracy vs Epochs vs Phase')  # summarize history for accuracy
                 plt.ylabel('Accuracy')
                 plt.xlabel('Epoch')
                 legend = ['Training Accuracy', 'Testing Accuracy']
@@ -322,7 +328,6 @@ if __name__ == '__main__':
                 plt.legend(legend, loc='best')
                 plt.show()
 
-
     # Get confusion matrix
     if exp_03:
         exp_file_name = 'exp_03.npy'
@@ -331,7 +336,7 @@ if __name__ == '__main__':
         n_epochs = 200
 
         if 0:  # generate data
-            other_args = {} # default optimizer is rmsprop
+            other_args = {'activation': 'relu'} # Default optimizer is rmsprop
             history, conf_matrix = train_and_test(X, y, skf, n_epochs, n_folds, num_layers, num_units, other_args)
             all_history = []
             all_conf_matrix = []
@@ -342,4 +347,60 @@ if __name__ == '__main__':
         else: # Read data
             exp_data = np.load(exp_file_name).item()
             print('Confusion Matrix: \n', exp_data['conf_matrix'][0])
+
+    # Accuracy vs epochs vs Activation function
+    if exp_04:
+        exp_file_name = 'exp_04.npy'
+        layers = 3
+        units = 64
+        activations = ['sigmoid', 'tanh', 'relu']
+        other_args = {}
+
+        if 0: # generate data
+            all_history = []
+            all_conf_matrix = []
+
+            for i, unit in enumerate(activations):
+                print('#### Activation: {0:s}'.format(activations[i]))
+                other_args = {'activation': activations[i]}
+                num_layers = layers
+                num_units = units
+                history, conf_matrix = train_and_test(X, y, skf, n_epochs, n_folds, num_layers, num_units, other_args)
+                all_history.append(history)
+                all_conf_matrix.append(conf_matrix)
+            exp_data = {'history': all_history, 'conf_matrix': all_conf_matrix}
+            np.save(exp_file_name, exp_data)
+        else: # Read data
+            exp_data = np.load(exp_file_name).item()
+            lw = 1
+
+            if 1:  # Training set: Accuracy vs Epochs vs #Units
+                plt.figure()
+                plt.grid()
+                plt.title('Training-Set: Accuracy vs Epochs vs Activation')  # summarize history for accuracy
+                plt.ylabel('Accuracy')
+                plt.xlabel('Epoch')
+                legend = []
+                for i in range(len(activations)):
+                    data = exp_data['history'][i]['acc']
+                    data = smooth(data, window_len=11)
+                    plt.plot(data, linewidth=lw)
+                    legend.append('Opt: ' + str(activations[i]))
+                plt.legend(legend, loc='best')
+                plt.show()
+
+            if 1:  # Test set: Accuracy vs Epochs vs #Units
+                plt.figure()
+                plt.grid()
+                plt.title('Test-Set: Accuracy vs Epochs vs Activation')  # summarize history for accuracy
+                plt.ylabel('Accuracy')
+                plt.xlabel('Epoch')
+                legend = []
+                for i in range(len(activations)):
+                    data = exp_data['history'][i]['val_acc']
+                    data = smooth(data, window_len=11)
+                    plt.plot(data, linewidth=lw)
+                    legend.append('Opt: ' + str(activations[i]))
+                plt.legend(legend, loc='best')
+                plt.show()
 
